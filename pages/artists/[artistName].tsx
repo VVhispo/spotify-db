@@ -7,6 +7,7 @@ import { Discography } from '@/components/artist/Discography';
 import { DiscographySlider } from '@/components/artist/DiscographySlider';
 import { RelatedArtists } from '@/components/artist/RelatedArtists';
 import { TopTracks } from '@/components/artist/TopTracks';
+import { useRouter } from 'next/router'
 
 interface Props{
     artistData: ArtistObject,
@@ -17,16 +18,29 @@ interface Props{
 }
 
 const ArtistPage: React.FC<Props> = ({artistData, artistAlbums, artistTopTracks, artistRelatedArtists}) => {
+    let scWidth = useRef<number>(-1)
     const div = useRef<HTMLDivElement>(null)
     const [slider, setSlider] = useState<boolean>(false)
     const handleResize = () => {
-        if(div.current && div.current.scrollWidth > div.current.clientWidth) setSlider(true)
+        if(div.current && scWidth.current > div.current.clientWidth) setSlider(true)
         else setSlider(false)
       }
     useEffect(()=>{
-        handleResize()
         window.addEventListener("resize", handleResize, false)
     }, [])
+
+    useEffect(()=>{
+        if(div.current && scWidth.current == -1){
+            scWidth.current = div.current!.scrollWidth
+            console.log('useEffect')
+            handleResize()
+        }
+    })
+
+    const router = useRouter()
+    if (router.isFallback){
+        return <div>Loading</div>
+    }
     return(<>
         <div className={styles.mainDiv}>
             <div className={styles.top}>
@@ -52,13 +66,20 @@ const ArtistPage: React.FC<Props> = ({artistData, artistAlbums, artistTopTracks,
                     <h1 className={styles.noAlbums}>This artist hasn't released any albums yet!</h1>
             </>}
             
-        </div>
-    </>)
+            </div>
+    </>) 
+}
+export const getStaticPaths:GetStaticPaths = async() =>{
+    return {
+        paths: [
+        { params: { artistName:'Placeholder'} },
+        ],
+    fallback: true
+  }
 }
 
-export const getServerSideProps: GetServerSideProps = async({params}) => {
+export const getStaticProps: GetStaticProps = async({params}) => {
     const artistName: string = params!.artistName as string
-
     const response = await fetch("http:/localhost:3000/api/getAccessToken")
     const { token } = await response.json()
 
@@ -107,7 +128,6 @@ export const getServerSideProps: GetServerSideProps = async({params}) => {
                 },
                 });
             const artistRelatedArtists = await artistRelatedArtistsReq.json() //res
-            
             return{
                 props: {
                     artistData: {
@@ -130,7 +150,7 @@ export const getServerSideProps: GetServerSideProps = async({params}) => {
                         }
                     }),
                     appearsOn
-                }
+                }, revalidate: 10
             }
         }
     }catch(error){

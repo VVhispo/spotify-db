@@ -13,7 +13,7 @@ export const RelatedArtists: React.FC<Props> = ({relatedArtists}) => {
         <h3 className={styles.relatedArtistsHeader}>Related Artists</h3>
         {relatedArtists.map(artist => {
             return(
-                <ArtistItem related_artist={artist} height={64}/>
+                <ArtistItem key={artist.id} related_artist={artist} height={64}/>
             )
         })}
     </>)
