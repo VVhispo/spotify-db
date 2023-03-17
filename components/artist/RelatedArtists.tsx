@@ -2,9 +2,10 @@ import React, {useState} from 'react'
 import styles from "@/styles/artist.module.css"
 import { Track } from './Track'
 import { ArtistItem } from './ArtistItem'
+import { RelatedArtist } from '@/interfaces'
 
 interface Props{
-    relatedArtists: Array<any>
+    relatedArtists: Array<RelatedArtist>
 }
 
 export const RelatedArtists: React.FC<Props> = ({relatedArtists}) => {
@@ -12,7 +13,7 @@ export const RelatedArtists: React.FC<Props> = ({relatedArtists}) => {
         <h3 className={styles.relatedArtistsHeader}>Related Artists</h3>
         {relatedArtists.map(artist => {
             return(
-                <ArtistItem key={artist.id} name={artist.name} image_url={artist.images[0].url} height={64}/>
+                <ArtistItem related_artist={artist} height={64}/>
             )
         })}
     </>)

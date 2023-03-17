@@ -2,17 +2,14 @@ import React, {useState} from 'react'
 import styles from "@/styles/artist.module.css"
 import Image from 'next/image'
 import Link from 'next/link'
+import { ArtistObject } from '@/interfaces'
 
-interface artistData{
-    name: string,
-    img_src: string,
-    genres: Array<string>,
-    followers: string,
-    spotify_url: string,
-    popularity: number
+interface Props{
+    data: ArtistObject
 }
 
-export const DataPanel: React.FC<artistData> = ({name, img_src, genres, followers, spotify_url, popularity}) => {
+export const DataPanel: React.FC<Props> = ({data}) => {
+    const {name, img_src, genres, followers, spotify_url, popularity} = data
     return(<>
         <div className={styles.data_mainDiv}>
             <Image className={styles.artistImage} src={img_src} alt={name} width="300" height="300" priority={true}></Image>
@@ -23,7 +20,7 @@ export const DataPanel: React.FC<artistData> = ({name, img_src, genres, follower
                     return genre + ", "
                 })}</p>
                 <div>
-                    <h3>Spotify followers: {followers.replace(/\B(?=(\d{3})+(?!\d))/g, " ")}</h3>
+                    <h3>Spotify followers: {followers.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ")}</h3>
                     <Link href={spotify_url} prefetch={false} target="_blank" className={styles.spotifyRedirect}>Spotify profile</Link>
                 </div>
                 <h5>Popularity: {popularity.toString()}%</h5>

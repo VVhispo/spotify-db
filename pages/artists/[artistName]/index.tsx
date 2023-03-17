@@ -1,21 +1,59 @@
 import { GetServerSideProps, GetStaticPaths, GetStaticProps } from 'next';
-import React, {useState, useEffect} from 'react'
-import { Artist } from '@/components/artist/Artist';
+import React, {useState, useEffect, useRef} from 'react'
+import { ArtistObject, RelatedArtist } from '@/interfaces';
+import styles from "@/styles/artist.module.css"
+import { DataPanel } from '@/components/artist/DataPanel';
+import { Discography } from '@/components/artist/Discography';
+import { DiscographySlider } from '@/components/artist/DiscographySlider';
+import { RelatedArtists } from '@/components/artist/RelatedArtists';
+import { TopTracks } from '@/components/artist/TopTracks';
 
 interface Props{
-    artistData: any,
+    artistData: ArtistObject,
     artistAlbums: Array<any>,
     artistTopTracks: Array<any>,
-    artistRelatedArtists: Array<any>,
+    artistRelatedArtists: Array<RelatedArtist>,
     appearsOn: Array<any>
 }
 
 const ArtistPage: React.FC<Props> = ({artistData, artistAlbums, artistTopTracks, artistRelatedArtists}) => {
-    return(
-        <>
-            <Artist generalData={artistData} albums={artistAlbums} topTracks={artistTopTracks} relatedArtists={artistRelatedArtists}/> 
-        </> 
-    )
+    const div = useRef<HTMLDivElement>(null)
+    const [slider, setSlider] = useState<boolean>(false)
+    const handleResize = () => {
+        if(div.current && div.current.scrollWidth > div.current.clientWidth) setSlider(true)
+        else setSlider(false)
+      }
+    useEffect(()=>{
+        handleResize()
+        window.addEventListener("resize", handleResize, false)
+    }, [])
+    return(<>
+        <div className={styles.mainDiv}>
+            <div className={styles.top}>
+                <div className={styles.artistInfo}>
+                    <DataPanel data={artistData}/>
+                </div>
+                <div className={styles.artistTopTracks}>
+                    <TopTracks topTracks = {artistTopTracks}/>
+                </div>
+                <div className={styles.artistTopTracks}>
+                    <RelatedArtists relatedArtists={artistRelatedArtists}/>
+            </div>
+            </div>
+            {artistAlbums.length > 0 ? 
+            <>  
+                <h1 className={styles.headerDisco}>Discography:</h1>
+                <div className={styles.albumList} ref={div}>
+                    {slider ? <DiscographySlider albums={artistAlbums}/> : <Discography albums={artistAlbums} /> }
+                </div>
+            </> 
+            : 
+            <>
+                    <h1 className={styles.noAlbums}>This artist hasn't released any albums yet!</h1>
+            </>}
+            
+        </div>
+    </>)
 }
 
 export const getServerSideProps: GetServerSideProps = async({params}) => {
@@ -69,12 +107,28 @@ export const getServerSideProps: GetServerSideProps = async({params}) => {
                 },
                 });
             const artistRelatedArtists = await artistRelatedArtistsReq.json() //res
+            
             return{
                 props: {
-                    artistData,
+                    artistData: {
+                        id: artistData.id,
+                        name: artistData.name,
+                        genres: artistData.genres,
+                        followers: artistData.followers.total.toString(),
+                        img_src: artistData.images[0].url,
+                        spotify_url: artistData.external_urls.spotify,
+                        popularity: artistData.popularity
+
+                    },
                     artistAlbums: artistAlbumsFiltered,
                     artistTopTracks: artistTopTracksFiltered,
-                    artistRelatedArtists: artistRelatedArtists.artists.slice(0,5),
+                    artistRelatedArtists: artistRelatedArtists.artists.slice(0,5).map((a: any) => {
+                        return {
+                            id: a.id,
+                            name: a.name,
+                            img_src: a.images[0].url
+                        }
+                    }),
                     appearsOn
                 }
             }
