@@ -1,9 +1,8 @@
 .mainDiv{
     width:100%;
     height:calc(100vh - 75px);
-    padding:30px;
-    padding-right:100px;
-    background-color: #ECF2FF;
+    padding:20px;
+    padding-right:80px;
     min-height:600px;
 }
 .top{
@@ -13,7 +12,6 @@
     justify-content: space-between;
 }
 .albumList{
-    border:1px solid black;
     display:flex;
     height:200px;
 }
@@ -56,6 +54,7 @@
     display:flex;
     align-items:center;
     margin: 0 5px;
+    border-top: 1px solid rgba(255,255,255,0.2);
 }
 .artistItemInfo{
     width:100%;

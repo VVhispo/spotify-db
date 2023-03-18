@@ -15,10 +15,10 @@ export const ArtistItem: React.FC<Props> = ({related_artist, height}) => {
         <Link href={`../artists/${name}` }>
         <div style={{height:height + "px"}} className={styles.artistItemDiv}>
             <div style={{height:height + "px", width:height + "px"}}>   
-                <Image src={img_src} height={Math.abs(0.9 * height)} width={Math.abs(0.9 * height)} alt="artist" priority={true}/>
+                <Image key={img_src} src={img_src} height={Math.abs(0.9 * height)} width={Math.abs(0.9 * height)} alt="artist" priority={true}/>
             </div>
             <div className={styles.artistItemInfo}>
-                <h4>{name}</h4>
+                <h3>{name}</h3>
             </div>
         </div>
         </Link>

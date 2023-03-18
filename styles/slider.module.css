@@ -1,0 +1,10 @@
+.mainCarouseleDiv{
+    display:flex;
+    overflow:hidden;
+    border:1px solid black;
+    background-color: rgb(164, 164, 255);
+}
+.arrowLeft, .arrowRight{
+    background-color: grey;
+    width:30px;
+}

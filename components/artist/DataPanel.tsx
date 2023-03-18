@@ -9,10 +9,10 @@ interface Props{
 }
 
 export const DataPanel: React.FC<Props> = ({data}) => {
-    const {name, img_src, genres, followers, spotify_url, popularity} = data
+    const {id, name, img_src, genres, followers, spotify_url, popularity} = data
     return(<>
         <div className={styles.data_mainDiv}>
-            <Image className={styles.artistImage} src={img_src} alt={name} width="300" height="300" priority={true}></Image>
+            <Image className={styles.artistImage} key={id} src={img_src} alt={name} width="300" height="300" priority={true}></Image>
             <div className={styles.info}>
                 <h1>{name}</h1>
                 <p>{genres.slice(0,3).map((genre, idx) => {

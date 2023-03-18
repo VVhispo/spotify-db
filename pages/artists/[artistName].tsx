@@ -32,7 +32,6 @@ const ArtistPage: React.FC<Props> = ({artistData, artistAlbums, artistTopTracks,
     useEffect(()=>{
         if(div.current && scWidth.current == -1){
             scWidth.current = div.current!.scrollWidth
-            console.log('useEffect')
             handleResize()
         }
     })
@@ -41,6 +40,8 @@ const ArtistPage: React.FC<Props> = ({artistData, artistAlbums, artistTopTracks,
     if (router.isFallback){
         return <div>Loading</div>
     }
+
+    console.log(artistAlbums[0].name)
     return(<>
         <div className={styles.mainDiv}>
             <div className={styles.top}>
@@ -72,7 +73,7 @@ const ArtistPage: React.FC<Props> = ({artistData, artistAlbums, artistTopTracks,
 export const getStaticPaths:GetStaticPaths = async() =>{
     return {
         paths: [
-        { params: { artistName:'Placeholder'} },
+        { params: { artistName:'Placeholder'} }, //any artist
         ],
     fallback: true
   }
@@ -80,6 +81,12 @@ export const getStaticPaths:GetStaticPaths = async() =>{
 
 export const getStaticProps: GetStaticProps = async({params}) => {
     const artistName: string = params!.artistName as string
+    if(artistName === "Placeholder"){
+        console.log("ahh")
+        return{
+            notFound: true
+        }
+    } 
     const response = await fetch("http:/localhost:3000/api/getAccessToken")
     const { token } = await response.json()
 
@@ -97,7 +104,7 @@ export const getStaticProps: GetStaticProps = async({params}) => {
         else{
             artistId = artistData.id
 
-            const artistAlbumsReq = await fetch(`https://api.spotify.com/v1/artists/${artistId}/albums`,{
+            const artistAlbumsReq = await fetch(`https://api.spotify.com/v1/artists/${artistId}/albums?limit=50`,{
             headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json"
