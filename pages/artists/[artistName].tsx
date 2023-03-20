@@ -5,6 +5,7 @@ import styles from "@/styles/artist.module.css"
 import { DataPanel } from '@/components/artist/DataPanel';
 import { Discography } from '@/components/artist/Discography';
 import { DiscographySlider } from '@/components/artist/DiscographySlider';
+import { DiscographyTest } from '@/components/artist/DiscographyTest';
 import { RelatedArtists } from '@/components/artist/RelatedArtists';
 import { TopTracks } from '@/components/artist/TopTracks';
 import { useRouter } from 'next/router'
@@ -18,30 +19,13 @@ interface Props{
 }
 
 const ArtistPage: React.FC<Props> = ({artistData, artistAlbums, artistTopTracks, artistRelatedArtists}) => {
-    let scWidth = useRef<number>(-1)
     const div = useRef<HTMLDivElement>(null)
-    const [slider, setSlider] = useState<boolean>(false)
-    const handleResize = () => {
-        if(div.current && scWidth.current > div.current.clientWidth) setSlider(true)
-        else setSlider(false)
-      }
-    useEffect(()=>{
-        window.addEventListener("resize", handleResize, false)
-    }, [])
-
-    useEffect(()=>{
-        if(div.current && scWidth.current == -1){
-            scWidth.current = div.current!.scrollWidth
-            handleResize()
-        }
-    })
 
     const router = useRouter()
     if (router.isFallback){
         return <div>Loading</div>
     }
 
-    console.log(artistAlbums[0].name)
     return(<>
         <div className={styles.mainDiv}>
             <div className={styles.top}>
@@ -59,7 +43,7 @@ const ArtistPage: React.FC<Props> = ({artistData, artistAlbums, artistTopTracks,
             <>  
                 <h1 className={styles.headerDisco}>Discography:</h1>
                 <div className={styles.albumList} ref={div}>
-                    {slider ? <DiscographySlider albums={artistAlbums}/> : <Discography albums={artistAlbums} /> }
+                     <DiscographyTest albums={artistAlbums} artistId={artistData.id}/>
                 </div>
             </> 
             : 
@@ -82,7 +66,6 @@ export const getStaticPaths:GetStaticPaths = async() =>{
 export const getStaticProps: GetStaticProps = async({params}) => {
     const artistName: string = params!.artistName as string
     if(artistName === "Placeholder"){
-        console.log("ahh")
         return{
             notFound: true
         }
@@ -104,7 +87,7 @@ export const getStaticProps: GetStaticProps = async({params}) => {
         else{
             artistId = artistData.id
 
-            const artistAlbumsReq = await fetch(`https://api.spotify.com/v1/artists/${artistId}/albums?limit=50`,{
+            const artistAlbumsReq = await fetch(`https://api.spotify.com/v1/artists/${artistId}/albums?market=US&limit=50`,{
             headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json"
@@ -127,7 +110,6 @@ export const getStaticProps: GetStaticProps = async({params}) => {
                 });
             const artistTopTracks = await artistTopTracksReq.json() //res
             const artistTopTracksFiltered = validateTopTracks(artistTopTracks.tracks, artistData.name)
-            
             const artistRelatedArtistsReq = await fetch(`https://api.spotify.com/v1/artists/${artistId}/related-artists`,{
                 headers: {
                 Authorization: `Bearer ${token}`,
@@ -135,33 +117,36 @@ export const getStaticProps: GetStaticProps = async({params}) => {
                 },
                 });
             const artistRelatedArtists = await artistRelatedArtistsReq.json() //res
-            return{
-                props: {
-                    artistData: {
-                        id: artistData.id,
-                        name: artistData.name,
-                        genres: artistData.genres,
-                        followers: artistData.followers.total.toString(),
-                        img_src: artistData.images[0].url,
-                        spotify_url: artistData.external_urls.spotify,
-                        popularity: artistData.popularity
 
-                    },
-                    artistAlbums: artistAlbumsFiltered,
-                    artistTopTracks: artistTopTracksFiltered,
-                    artistRelatedArtists: artistRelatedArtists.artists.slice(0,5).map((a: any) => {
-                        return {
-                            id: a.id,
-                            name: a.name,
-                            img_src: a.images[0].url
-                        }
-                    }),
-                    appearsOn
-                }, revalidate: 10
+            const props: any = {
+                artistData: {
+                    id: artistData.id,
+                    name: artistData.name,
+                    genres: artistData.genres,
+                    followers: artistData.followers.total.toString(),
+                    img_src: artistData.images[0].url,
+                    spotify_url: artistData.external_urls.spotify,
+                    popularity: artistData.popularity
+
+                },
+                artistAlbums: artistAlbumsFiltered,
+                artistTopTracks: artistTopTracksFiltered,
+                artistRelatedArtists: artistRelatedArtists.artists.slice(0,5).map((a: any) => {
+                    return {
+                        id: a.id,
+                        name: a.name,
+                        img_src: a.images[0].url
+                    }
+                }),
+            appearsOn
+            }
+            props.key = artistData.id
+            return{
+                props: props, 
+                revalidate: 10
             }
         }
     }catch(error){
-        console.log(error)
         return{
             notFound: true
         }
@@ -170,14 +155,14 @@ export const getStaticProps: GetStaticProps = async({params}) => {
 
 const validateTopTracks = (TopTracks: Array<any>, artist_name: string): Array<any> => {
     let artistTopTracksFiltered = TopTracks.filter((track: any) => {
-        
         return track.album.artists.map((t: any) => t.name).includes(artist_name) && track.album.album_type=="album"
     })
-    if(artistTopTracksFiltered.length < 5){
-        const length:number = [...artistTopTracksFiltered].length
+    const artistOwnTopTracks = [...artistTopTracksFiltered]
+    if(artistOwnTopTracks.length < 5){
+        const length:number = [...artistOwnTopTracks].length
         for(let i=0; i<(5-length); i++){
             artistTopTracksFiltered.push(
-                TopTracks.filter((n:any) => !artistTopTracksFiltered.includes(n))[i]
+                TopTracks.filter((n:any) => !artistOwnTopTracks.includes(n))[i]
             )
         }
     }else if(artistTopTracksFiltered.length > 5){
