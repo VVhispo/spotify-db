@@ -1,11 +1,9 @@
 import { GetServerSideProps, GetStaticPaths, GetStaticProps } from 'next';
 import React, {useState, useEffect, useRef} from 'react'
-import { ArtistObject, RelatedArtist } from '@/interfaces';
+import { ArtistObject, ArtistReference, TrackObject } from '@/interfaces';
 import styles from "@/styles/artist.module.css"
 import { DataPanel } from '@/components/artist/DataPanel';
 import { Discography } from '@/components/artist/Discography';
-import { DiscographySlider } from '@/components/artist/DiscographySlider';
-import { DiscographyTest } from '@/components/artist/DiscographyTest';
 import { RelatedArtists } from '@/components/artist/RelatedArtists';
 import { TopTracks } from '@/components/artist/TopTracks';
 import { useRouter } from 'next/router'
@@ -13,8 +11,8 @@ import { useRouter } from 'next/router'
 interface Props{
     artistData: ArtistObject,
     artistAlbums: Array<any>,
-    artistTopTracks: Array<any>,
-    artistRelatedArtists: Array<RelatedArtist>,
+    artistTopTracks: Array<TrackObject>,
+    artistRelatedArtists: Array<ArtistReference>,
     appearsOn: Array<any>
 }
 
@@ -43,7 +41,7 @@ const ArtistPage: React.FC<Props> = ({artistData, artistAlbums, artistTopTracks,
             <>  
                 <h1 className={styles.headerDisco}>Discography:</h1>
                 <div className={styles.albumList} ref={div}>
-                     <DiscographyTest albums={artistAlbums} artistId={artistData.id}/>
+                     <Discography albums={artistAlbums} artistId={artistData.id}/>
                 </div>
             </> 
             : 
@@ -82,7 +80,7 @@ export const getStaticProps: GetStaticProps = async({params}) => {
     let artistId: string | null
     try{ 
         const artistRes = await artist.json()
-        const artistData = artistRes.artists.items[0] //res
+        const artistData = formatArtistData(artistRes.artists.items[0]) //res
         if(artistData.name.length != artistName.length) throw new Error("not found") //to avoid errors like /aaa forwarding to AAAWARIA artist
         else{
             artistId = artistData.id
@@ -96,7 +94,7 @@ export const getStaticProps: GetStaticProps = async({params}) => {
             const artistAlbums = await artistAlbumsReq.json()
             const artistAlbumsFiltered = artistAlbums.items.filter((album: any) => { //res
                 return album.album_type === 'album' && album.album_group === 'album' //filter out singles
-            })
+            }).filter((v:any,i:number,a:any)=>a.findIndex((v2:any)=>(v2.name===v.name))===i)
 
             const appearsOn = artistAlbums.items.filter((album: any) => { //res
                 return album.album_group === 'appears_on' //filter out singles
@@ -109,7 +107,8 @@ export const getStaticProps: GetStaticProps = async({params}) => {
                 },
                 });
             const artistTopTracks = await artistTopTracksReq.json() //res
-            const artistTopTracksFiltered = validateTopTracks(artistTopTracks.tracks, artistData.name)
+            const artistTopTracksFiltered = formatTopTracks(validateTopTracks(artistTopTracks.tracks, artistData.name))
+
             const artistRelatedArtistsReq = await fetch(`https://api.spotify.com/v1/artists/${artistId}/related-artists`,{
                 headers: {
                 Authorization: `Bearer ${token}`,
@@ -117,28 +116,14 @@ export const getStaticProps: GetStaticProps = async({params}) => {
                 },
                 });
             const artistRelatedArtists = await artistRelatedArtistsReq.json() //res
+            const artistRelatedArtistsFiltered = formatRelatedArtists(artistRelatedArtists)
 
             const props: any = {
-                artistData: {
-                    id: artistData.id,
-                    name: artistData.name,
-                    genres: artistData.genres,
-                    followers: artistData.followers.total.toString(),
-                    img_src: artistData.images[0].url,
-                    spotify_url: artistData.external_urls.spotify,
-                    popularity: artistData.popularity
-
-                },
+                artistData,
                 artistAlbums: artistAlbumsFiltered,
                 artistTopTracks: artistTopTracksFiltered,
-                artistRelatedArtists: artistRelatedArtists.artists.slice(0,5).map((a: any) => {
-                    return {
-                        id: a.id,
-                        name: a.name,
-                        img_src: a.images[0].url
-                    }
-                }),
-            appearsOn
+                artistRelatedArtists: artistRelatedArtistsFiltered,
+                appearsOn
             }
             props.key = artistData.id
             return{
@@ -169,6 +154,48 @@ const validateTopTracks = (TopTracks: Array<any>, artist_name: string): Array<an
         artistTopTracksFiltered = artistTopTracksFiltered.slice(0,5)
     }
     return artistTopTracksFiltered
+}
+
+const formatTopTracks = (TopTracks: Array<any>): Array<TrackObject> => {
+    return TopTracks.map(track=>{
+        return {
+            id: track.id,
+            name:track.name,
+            album_name:track.album.name,
+            album_id:track.album.id,
+            img_src:track.album.images[0].url,
+            artists: track.artists.map((a:any)=>{
+                return {
+                    id:a.id,
+                    name:a.name,
+                    img_src: null,
+                }
+            }),
+        }
+    })
+}
+
+const formatArtistData = (artistData: any): ArtistObject => {
+    return{
+        id: artistData.id,
+        name: artistData.name,
+        genres: artistData.genres,
+        followers: artistData.followers.total.toString(),
+        img_src: artistData.images[0].url,
+        spotify_url: artistData.external_urls.spotify,
+        popularity: artistData.popularity
+
+    }
+}
+
+const formatRelatedArtists = (relatedArtists: any): Array<ArtistReference> => {
+    return relatedArtists.artists.slice(0,5).map((a: any) => {
+        return {
+            id: a.id,
+            name: a.name,
+            img_src: a.images[0].url
+        }
+    })
 }
 
 export default ArtistPage

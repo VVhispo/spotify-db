@@ -13,6 +13,7 @@ const AlbumPage: React.FC<Props> = ({data}) => {
 
 export const getStaticProps:GetStaticProps = async(context) => {
   const {params} = context
+  console.log(params)
     return {
         props: {
           data: params!.albumName
