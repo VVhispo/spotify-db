@@ -2,9 +2,10 @@ import React, {useState, useRef, useEffect} from 'react'
 import { AlbumItem } from './AlbumItem'
 import styles from "@/styles/slider.module.css"
 import { userAgentFromString } from 'next/server'
+import { AlbumReference } from '@/interfaces'
 
 interface Props{
-    albums: Array<any>,
+    albums: Array<AlbumReference>,
     artistId: string,
 }
 
@@ -39,14 +40,14 @@ export const Discography: React.FC<Props> = ({albums}) => {
         return(<div className={styles.mainCarouseleDiv} ref={mainDiv}>
             <div className={styles.arrowLeft} onClick={moveLeft}></div>
             {arr_albums.map(album=>{
-                return <AlbumItem key={album.id} artist_name={album.artists[0].name} img_url={album.images[0].url} name={album.name} year={album.release_date} />
+                return <AlbumItem key={album.id} data={album} />
             })}
             <div className={styles.arrowRight} onClick={moveRight}></div>
         </div>)
     }else{
         return(<div className={styles.mainCarouseleDiv} >
             {albums.map(album=>{
-                return <AlbumItem key={album.id} artist_name={album.artists[0].name} img_url={album.images[0].url} name={album.name} year={album.release_date} />
+                return <AlbumItem key={album.id} data={album} />
             })}
         </div>)
     }

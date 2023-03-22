@@ -14,6 +14,14 @@ export interface ArtistReference{
     img_src?: string,
 }
 
+export interface AlbumReference{
+    id:string,
+    name:string,
+    img_src:string,
+    year: string,
+    artist_name: string,
+}
+
 export interface TrackObject{
     id: string,
     name:string,
@@ -22,3 +30,5 @@ export interface TrackObject{
     img_src:string,
     artists: Array<ArtistReference>,
 }
+
+export type searchType = "artist" | "album"

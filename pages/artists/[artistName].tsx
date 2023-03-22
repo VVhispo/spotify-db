@@ -1,6 +1,6 @@
 import { GetServerSideProps, GetStaticPaths, GetStaticProps } from 'next';
 import React, {useState, useEffect, useRef} from 'react'
-import { ArtistObject, ArtistReference, TrackObject } from '@/interfaces';
+import { ArtistObject, ArtistReference, TrackObject, AlbumReference } from '@/interfaces';
 import styles from "@/styles/artist.module.css"
 import { DataPanel } from '@/components/artist/DataPanel';
 import { Discography } from '@/components/artist/Discography';
@@ -10,7 +10,7 @@ import { useRouter } from 'next/router'
 
 interface Props{
     artistData: ArtistObject,
-    artistAlbums: Array<any>,
+    artistAlbums: Array<AlbumReference>,
     artistTopTracks: Array<TrackObject>,
     artistRelatedArtists: Array<ArtistReference>,
     appearsOn: Array<any>
@@ -92,9 +92,7 @@ export const getStaticProps: GetStaticProps = async({params}) => {
             },
             });
             const artistAlbums = await artistAlbumsReq.json()
-            const artistAlbumsFiltered = artistAlbums.items.filter((album: any) => { //res
-                return album.album_type === 'album' && album.album_group === 'album' //filter out singles
-            }).filter((v:any,i:number,a:any)=>a.findIndex((v2:any)=>(v2.name===v.name))===i)
+            const artistAlbumsFiltered = formatAlbums(filterAlbums(artistAlbums.items))
 
             const appearsOn = artistAlbums.items.filter((album: any) => { //res
                 return album.album_group === 'appears_on' //filter out singles
@@ -188,6 +186,18 @@ const formatArtistData = (artistData: any): ArtistObject => {
     }
 }
 
+const formatAlbums = (artistAlbums: Array<any>): Array<AlbumReference> => {
+    return artistAlbums.map((a:any)=>{
+        return{
+            id: a.id,
+            name: a.name,
+            year: a.release_date.slice(0,4),
+            img_src: a.images[0].url,
+            artist_name: a.artists[0].name
+        }
+    })
+}
+
 const formatRelatedArtists = (relatedArtists: any): Array<ArtistReference> => {
     return relatedArtists.artists.slice(0,5).map((a: any) => {
         return {
@@ -196,6 +206,12 @@ const formatRelatedArtists = (relatedArtists: any): Array<ArtistReference> => {
             img_src: a.images[0].url
         }
     })
+}
+
+const filterAlbums = (artistAlbums: Array<any>): Array<any> => {
+    return artistAlbums.filter((album: any) => { //res
+        return album.album_type === 'album' && album.album_group === 'album' //filter out singles
+    }).filter((v:any,i:number,a:any)=>a.findIndex((v2:any)=>(v2.name===v.name))===i)
 }
 
 export default ArtistPage
