@@ -20,12 +20,12 @@ export const Discography: React.FC<Props> = ({albums}) => {
         if(albums) handleResize()
     }, [])
     const handleResize = () =>{
-        setAlbums([...albums].slice(counterRight, Math.abs((document.body.clientWidth - 150) / 175) + counterRight))
-        if(arr_albums.slice(0,Math.abs((document.body.clientWidth - 140) / 175)).length == albums.length) setSlider(false)
+        setAlbums([...albums].slice(counterRight, Math.abs((document.body.clientWidth - 100) / 175) + counterRight))
+        if(arr_albums.slice(0,Math.abs((document.body.clientWidth - 100) / 175)).length == albums.length) setSlider(false)
     }
     const moveRight = () => {
-        if(counterRight < albums.length - Math.abs((document.body.clientWidth - 150) / 175)){
-            setAlbums([...albums].slice(counterRight + 1, Math.abs((document.body.clientWidth - 150) / 175) + counterRight + 1))
+        if(counterRight < albums.length - Math.abs((document.body.clientWidth - 100) / 175)){
+            setAlbums([...albums].slice(counterRight + 1, Math.abs((document.body.clientWidth - 140) / 175) + counterRight + 1))
             setCounter(counterRight + 1)
         }
     }

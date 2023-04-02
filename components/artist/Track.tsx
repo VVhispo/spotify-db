@@ -11,7 +11,7 @@ interface Props{
 export const Track: React.FC<Props> = ({data, height}) => {
     const {name, album_name, artists, img_src} = data
     return(<>
-        <Link href={`../artists/${artists[0].name}/albums/${album_name}` }>
+        <Link href={`../albums/${artists[0].name}/${album_name}` }>
         <div style={{height:height + "px"}} className={styles.trackItemDiv}>
             <Image src={img_src} height={Math.abs(0.9 * height)} width={Math.abs(0.9 * height)} alt="album cover" priority={true}/>
             <div className={styles.trackItemInfo}>

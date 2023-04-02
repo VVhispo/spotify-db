@@ -10,8 +10,11 @@ interface Props{
 export const SearchArtistItem: React.FC<Props> = ({data}) => {
     const {id, name} = data
     const img_src = (data.img_src) ? data.img_src : "/default_artist.png"
+    console.log(img_src)
     return(<div className={styles.itemMainDiv}>
-        <Image alt={name} src={img_src} width="200" height="200"/>
+        <div className={styles.image}>
+            <Image alt={name} src={img_src} fill/>
+        </div>  
         {name}
     </div>)
 }

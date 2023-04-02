@@ -1,8 +1,7 @@
 .mainDiv{
     width:100%;
     height:calc(100vh - 75px);
-    padding:20px;
-    padding-right:80px;
+    padding:30px;
     min-height:600px;
 }
 .top{
@@ -64,7 +63,7 @@
     padding:5px;
 }
 .headerDisco{
-    margin:30px 0 15px 10px;
+    margin:30px 0 10px 10px;
 }
 .noAlbums{
     margin:70px auto 0 auto;

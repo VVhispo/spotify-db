@@ -9,7 +9,7 @@ export const Header: React.FC = () => {
             <div className={styles.logo}>
             </div>
             <div className={styles.navbar}>
-                <NavbarItem mainText="Link1" link="/"/>
+                <NavbarItem mainText="Search" link="/search"/>
                 <NavbarItem mainText="Link2" link="/"/>
                 <NavbarItem mainText="Link3" link="/"/>
             </div>

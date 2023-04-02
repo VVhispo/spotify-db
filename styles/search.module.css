@@ -1,0 +1,20 @@
+.searchResults{
+    padding:30px;
+    display:flex;
+    flex-wrap:wrap;
+}
+.itemMainDiv{
+    margin: 10px;
+    width: calc(calc(100% - 140px) / 7);
+    height: calc(calc(calc(100% - 140px) / 7) + 60px);
+    min-width:180px;
+    min-height:220px;
+    border:2px solid red;
+}
+.image{
+    position:relative;
+    margin:15px auto;
+    width: calc(100% - 30px);
+    max-width:200px;
+    aspect-ratio:1/1;
+}
