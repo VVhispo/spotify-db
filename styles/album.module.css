@@ -6,3 +6,9 @@
     align-items:center;
     text-align: center;
 }
+.mainDiv{
+    width:100%;
+    height:calc(100vh - 75px);
+    padding:30px;
+    min-height:600px;
+}

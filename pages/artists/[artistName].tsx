@@ -13,7 +13,6 @@ interface Props{
     artistAlbums: Array<AlbumReference>,
     artistTopTracks: Array<TrackObject>,
     artistRelatedArtists: Array<ArtistReference>,
-    appearsOn: Array<any>
 }
 
 const ArtistPage: React.FC<Props> = ({artistData, artistAlbums, artistTopTracks, artistRelatedArtists}) => {
@@ -71,6 +70,7 @@ export const getStaticProps: GetStaticProps = async({params}) => {
     const response = await fetch("http:/localhost:3000/api/getAccessToken")
     const { token } = await response.json()
 
+
     const artist = await fetch(`https://api.spotify.com/v1/search?q=artist%3A${artistName!.replace(" ", "%20")}&type=artist`,{
     headers: {
       Authorization: `Bearer ${token}`,
@@ -85,43 +85,30 @@ export const getStaticProps: GetStaticProps = async({params}) => {
         else{
             artistId = artistData.id
 
-            const artistAlbumsReq = await fetch(`https://api.spotify.com/v1/artists/${artistId}/albums?market=US&limit=50`,{
-            headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json"
-            },
-            });
-            const artistAlbums = await artistAlbumsReq.json()
-            const artistAlbumsFiltered = formatAlbums(filterAlbums(artistAlbums.items))
+            const api_post = {
+                method:'POST',
+                body: JSON.stringify({
+                    token:token,
+                    artistId:artistId,
+                    artist_name: artistData.name,
+                }),
+                headers:{ 'Content-Type':'application/json'}
+            }
 
-            const appearsOn = artistAlbums.items.filter((album: any) => { //res
-                return album.album_group === 'appears_on' //filter out singles
-            })
+            const getArtistAlbums = await fetch("http:/localhost:3000/api/artist/albums", api_post)
+            const artistAlbums = await getArtistAlbums.json()
 
-            const artistTopTracksReq = await fetch(`https://api.spotify.com/v1/artists/${artistId}/top-tracks?market=US`,{
-                headers: {
-                Authorization: `Bearer ${token}`,
-                "Content-Type": "application/json"
-                },
-                });
-            const artistTopTracks = await artistTopTracksReq.json() //res
-            const artistTopTracksFiltered = formatTopTracks(validateTopTracks(artistTopTracks.tracks, artistData.name))
+            const getTopTracks = await fetch("http:/localhost:3000/api/artist/top_tracks", api_post)
+            const topTracks = await getTopTracks.json()
 
-            const artistRelatedArtistsReq = await fetch(`https://api.spotify.com/v1/artists/${artistId}/related-artists`,{
-                headers: {
-                Authorization: `Bearer ${token}`,
-                "Content-Type": "application/json"
-                },
-                });
-            const artistRelatedArtists = await artistRelatedArtistsReq.json() //res
-            const artistRelatedArtistsFiltered = formatRelatedArtists(artistRelatedArtists)
+            const getRelatedArtists = await fetch("http:/localhost:3000/api/artist/related_artists", api_post)
+            const relatedArtists = await getRelatedArtists.json()
 
             const props: any = {
                 artistData,
-                artistAlbums: artistAlbumsFiltered,
-                artistTopTracks: artistTopTracksFiltered,
-                artistRelatedArtists: artistRelatedArtistsFiltered,
-                appearsOn
+                artistAlbums: artistAlbums,
+                artistTopTracks: topTracks,
+                artistRelatedArtists: relatedArtists,
             }
             props.key = artistData.id
             return{
@@ -136,42 +123,6 @@ export const getStaticProps: GetStaticProps = async({params}) => {
     }
 }
 
-const validateTopTracks = (TopTracks: Array<any>, artist_name: string): Array<any> => {
-    let artistTopTracksFiltered = TopTracks.filter((track: any) => {
-        return track.album.artists.map((t: any) => t.name).includes(artist_name) && track.album.album_type=="album"
-    })
-    const artistOwnTopTracks = [...artistTopTracksFiltered]
-    if(artistOwnTopTracks.length < 5){
-        const length:number = [...artistOwnTopTracks].length
-        for(let i=0; i<(5-length); i++){
-            artistTopTracksFiltered.push(
-                TopTracks.filter((n:any) => !artistOwnTopTracks.includes(n))[i]
-            )
-        }
-    }else if(artistTopTracksFiltered.length > 5){
-        artistTopTracksFiltered = artistTopTracksFiltered.slice(0,5)
-    }
-    return artistTopTracksFiltered
-}
-
-const formatTopTracks = (TopTracks: Array<any>): Array<TrackObject> => {
-    return TopTracks.map(track=>{
-        return {
-            id: track.id,
-            name:track.name,
-            album_name:track.album.name,
-            album_id:track.album.id,
-            img_src:track.album.images[0].url,
-            artists: track.artists.map((a:any)=>{
-                return {
-                    id:a.id,
-                    name:a.name,
-                    img_src: null,
-                }
-            }),
-        }
-    })
-}
 
 const formatArtistData = (artistData: any): ArtistObject => {
     return{
@@ -186,32 +137,5 @@ const formatArtistData = (artistData: any): ArtistObject => {
     }
 }
 
-const formatAlbums = (artistAlbums: Array<any>): Array<AlbumReference> => {
-    return artistAlbums.map((a:any)=>{
-        return{
-            id: a.id,
-            name: a.name,
-            year: a.release_date.slice(0,4),
-            img_src: a.images[0].url,
-            artist_name: a.artists[0].name
-        }
-    })
-}
-
-const formatRelatedArtists = (relatedArtists: any): Array<ArtistReference> => {
-    return relatedArtists.artists.slice(0,5).map((a: any) => {
-        return {
-            id: a.id,
-            name: a.name,
-            img_src: a.images[0].url
-        }
-    })
-}
-
-const filterAlbums = (artistAlbums: Array<any>): Array<any> => {
-    return artistAlbums.filter((album: any) => { //res
-        return album.album_type === 'album' && album.album_group === 'album' //filter out singles
-    }).filter((v:any,i:number,a:any)=>a.findIndex((v2:any)=>(v2.name===v.name))===i)
-}
 
 export default ArtistPage
