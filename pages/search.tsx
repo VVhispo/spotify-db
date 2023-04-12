@@ -26,46 +26,20 @@ const SearchPage: React.FC = () => {
     
     const getSearchResults = async() => {
         if(searchValue === undefined) return
-        const res = await fetch(`https://api.spotify.com/v1/search?q=${searchValue!.replace(" ", "%20")}&type=${searchType}&market=US&limit=50`,{
-        headers: {
-        Authorization: `Bearer ${access_token}`,
-        "Content-Type": "application/json"
-        },
+        const getResults = await fetch("api/search/results",{
+            method:'POST',
+            body: JSON.stringify({
+                token:access_token,
+                searchValue,
+                searchType,
+            }),
+            headers:{ 'Content-Type':'application/json'}
         });
-        const result = await res.json()
-        if(result.error) return
-        let data;
-        (searchType == "album") ? data = formatAlbums(result.albums.items) : data = formatArtists(result.artists.items);
-        setSearchResults(data)
+        const results = await getResults.json()
+        if(getResults.status == 500) return
+        setSearchResults(results)
     }
 
-
-    const formatAlbums = (albums: Array<any>): Array<AlbumReference> => {
-        return ((albums.filter(a=>{
-            return a.album_group == 'album' && a.album_type == 'album'
-        }).map(a=>{
-            return {
-                id: a.id,
-                artist_name: a.artists[0].name,
-                img_src: a.images[0].url,
-                name: a.name,
-                year: a.release_date.slice(0,4)
-            }
-        })).filter((v:any,i:number,a:any)=>a.findIndex((v2:any)=>(v2.name===v.name && v.artist_name ===v2.artist_name))===i)
-        ).splice(0, 21)
-    }
-
-    const formatArtists = (artists: Array<any>): Array<ArtistReference> => {
-        return (artists.filter(a=>{
-                return parseInt(a.followers.total)>1000
-            }).map(a=>{
-            return {
-                id: a.id,
-                name: a.name,
-                img_src: (a.images[0].url) ?? a.images[0].url
-            }
-        })).splice(0, 21)
-    }
 
     return(<div className={styles.mainDiv}>
         <div className={styles.searchBar}>
