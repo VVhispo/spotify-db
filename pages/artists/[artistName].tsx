@@ -51,6 +51,8 @@ const ArtistPage: React.FC<Props> = ({artistData, artistAlbums, artistTopTracks,
             </div>
     </>) 
 }
+
+
 export const getStaticPaths:GetStaticPaths = async() =>{
     return {
         paths: [
@@ -71,60 +73,58 @@ export const getStaticProps: GetStaticProps = async({params}) => {
     const { token } = await response.json()
 
 
-    const artist = await fetch(`https://api.spotify.com/v1/search?q=artist%3A${artistName!.replace(" ", "%20")}&type=artist`,{
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json"
-    },
-    });
-    let artistId: string | null
-    try{ 
-        const artistRes = await artist.json()
-        const artistData = formatArtistData(artistRes.artists.items[0]) //res
-        if(artistData.name.length != artistName.length) throw new Error("not found") //to avoid errors like /aaa forwarding to AAAWARIA artist
-        else{
-            artistId = artistData.id
+    const getArtistData = await fetch("http:/localhost:3000/api/artist/data", {
+        method:'POST',
+        body: JSON.stringify({
+            token:token,
+            artistUrlName:artistName!
+        }),
+        headers:{ 'Content-Type':'application/json'}
+    })
+    const artistData = await getArtistData.json()
 
-            const api_post = {
-                method:'POST',
-                body: JSON.stringify({
-                    token:token,
-                    artistId:artistId,
-                    artist_name: artistData.name,
-                }),
-                headers:{ 'Content-Type':'application/json'}
-            }
-
-            const getArtistAlbums = await fetch("http:/localhost:3000/api/artist/albums", api_post)
-            const artistAlbums = await getArtistAlbums.json()
-
-            const getTopTracks = await fetch("http:/localhost:3000/api/artist/top_tracks", api_post)
-            const topTracks = await getTopTracks.json()
-
-            const getRelatedArtists = await fetch("http:/localhost:3000/api/artist/related_artists", api_post)
-            const relatedArtists = await getRelatedArtists.json()
-
-            const props: any = {
-                artistData,
-                artistAlbums: artistAlbums,
-                artistTopTracks: topTracks,
-                artistRelatedArtists: relatedArtists,
-            }
-            props.key = artistData.id
-            return{
-                props: props, 
-                revalidate: 10
-            }
-        }
-    }catch(error){
+    if(getArtistData.status == 500 || artistData.name.length != artistName.length){
         return{
             notFound: true
         }
+    } //to avoid errors like /aaa forwarding to AAAWARIA artist
+    const artistId = artistData.id
+
+
+    const api_post = {
+        method:'POST',
+        body: JSON.stringify({
+            token:token,
+            artistId:artistId,
+            artist_name: artistData.name,
+        }),
+        headers:{ 'Content-Type':'application/json'}
+    }
+
+    const getArtistAlbums = await fetch("http:/localhost:3000/api/artist/albums", api_post)
+    const artistAlbums = await getArtistAlbums.json()
+
+    const getTopTracks = await fetch("http:/localhost:3000/api/artist/top_tracks", api_post)
+    const topTracks = await getTopTracks.json()
+
+    const getRelatedArtists = await fetch("http:/localhost:3000/api/artist/related_artists", api_post)
+    const relatedArtists = await getRelatedArtists.json()
+
+    const props: any = {
+        artistData,
+        artistAlbums: artistAlbums,
+        artistTopTracks: topTracks,
+        artistRelatedArtists: relatedArtists,
+    }
+    props.key = artistData.id
+    return{
+        props: props, 
+        revalidate: 10
     }
 }
 
 
-const formatArtistData = (artistData: any): ArtistObject => {
+const formatToType = (artistData: any): ArtistObject => {
     return{
         id: artistData.id,
         name: artistData.name,

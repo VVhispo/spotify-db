@@ -2,7 +2,7 @@
     width:100%;
     height:calc(100vh - 75px);
     padding:30px;
-    min-height:600px;
+    min-height:680px;
 }
 .top{
     width:100%;
@@ -12,7 +12,7 @@
 }
 .albumList{
     display:flex;
-    height:200px;
+    height:210px;
 }
 .data_mainDiv{
     width:100%;

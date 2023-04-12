@@ -20,18 +20,22 @@ export const Discography: React.FC<Props> = ({albums}) => {
         if(albums) handleResize()
     }, [])
     const handleResize = () =>{
-        setAlbums([...albums].slice(counterRight, Math.abs((document.body.clientWidth - 100) / 175) + counterRight))
-        if(arr_albums.slice(0,Math.abs((document.body.clientWidth - 100) / 175)).length == albums.length) setSlider(false)
+        console.log("==========RESIZE")
+        // console.log([...albums].slice(counterRight, Math.floor((document.body.clientWidth - 100) / 175) + counterRight))
+        // console.log(albums)
+        setAlbums([...albums].slice(counterRight, Math.floor((document.body.clientWidth - 100) / 175) + counterRight))
+        if(arr_albums.slice(0,Math.floor((document.body.clientWidth - 100) / 175)).length == albums.length) setSlider(false)
+        else setSlider(true)
     }
     const moveRight = () => {
-        if(counterRight < albums.length - Math.abs((document.body.clientWidth - 100) / 175)){
-            setAlbums([...albums].slice(counterRight + 1, Math.abs((document.body.clientWidth - 140) / 175) + counterRight + 1))
+        if(counterRight < albums.length - Math.floor((document.body.clientWidth - 100) / 175)){
+            setAlbums([...albums].slice(counterRight + 1, Math.floor((document.body.clientWidth - 140) / 175) + counterRight + 1))
             setCounter(counterRight + 1)
         }
     }
     const moveLeft = () => {
         if(counterRight > 0){
-            setAlbums([...albums].slice(counterRight - 1, Math.abs((document.body.clientWidth - 150) / 175) + counterRight - 1))
+            setAlbums([...albums].slice(counterRight - 1, Math.floor((document.body.clientWidth - 150) / 175) + counterRight - 1))
             setCounter(counterRight - 1)
         }
     }

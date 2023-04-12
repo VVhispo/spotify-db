@@ -14,8 +14,14 @@ const AlbumPage: React.FC<Props> = ({data}) => {
 
 export const getStaticProps:GetStaticProps = async(context) => {
   const {params} = context
-  const artistName: string = params!.artistName as string
-  const albumName: string = params!.albumName as string
+  const artistUrlName: string = params!.artistName as string
+  const albumUrlName: string = params!.albumName as string
+
+  if(artistUrlName === "Placeholder"){
+    return{
+        notFound: true
+    }
+  } 
 
   const res = await fetch("http:/localhost:3000/api/getAccessToken")
   const { token } = await res.json()
